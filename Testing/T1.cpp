@@ -10,70 +10,27 @@ struct TreeNode {
     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
 };
 
-struct node {
-  int data;
-  struct node * left, * right;
-};
+TreeNode * constructTree(vector < int > & preorder, int preStart, int preEnd, vector < int > & inorder, int inStart, int inEnd, map < int, int > & mp) {
+  if (preStart > preEnd || inStart > inEnd) return NULL;
 
-bool isLeaf(node * root) {
-  return !root -> left && !root -> right;
+  TreeNode * root = new TreeNode(preorder[preStart]);
+  int elem = mp[root -> val];
+  int nElem = elem - inStart;
+
+  root -> left = constructTree(preorder, preStart + 1, preStart + nElem, inorder, inStart, elem - 1, mp);
+  root -> right = constructTree(preorder, preStart + nElem + 1, preEnd, inorder, elem + 1, inEnd, mp);
+
+  return root;
 }
 
-void addLeftBoundary(node * root, vector < int > & res) {
-	node * cur = root -> left;
-	while (cur) {
-		if (!isLeaf(cur)) res.push_back(cur -> data);
-		if (cur -> left) cur = cur -> left;
-		else cur = cur -> right;
-	}
+TreeNode * buildTree(vector < int > & preorder, vector < int > & inorder) {
+  int preStart = 0, preEnd = preorder.size() - 1;
+  int inStart = 0, inEnd = inorder.size() - 1;
+
+  map < int, int > mp;
+  for (int i = inStart; i <= inEnd; i++) {
+    mp[inorder[i]] = i;
+  }
+
+  return constructTree(preorder, preStart, preEnd, inorder, inStart, inEnd, mp);
 }
-
-void addRightBoundary(node * root, vector < int > & res) {
-	node * cur = root -> right;
-	vector < int > tmp;
-	while (cur) {
-		if (!isLeaf(cur)) tmp.push_back(cur -> data);
-		if (cur -> right) cur = cur -> right;
-		else cur = cur -> left;
-	}
-	for (int i = tmp.size() - 1; i >= 0; --i) {
-		res.push_back(tmp[i]);
-	}
-}
-
-void addLeaves(node * root, vector < int > & res) {
-	if (isLeaf(root)) {
-		res.push_back(root -> data);
-		return;
-	}
-	if (root -> left) addLeaves(root -> left, res);
-	if (root -> right) addLeaves(root -> right, res);
-}
-
-vector < int > printBoundary(node * root) {
-  vector < int > res;
-  if (!root) return res;
-
-  if (!isLeaf(root)) res.push_back(root -> data);
-
-  addLeftBoundary(root, res);
-
-  // add leaf nodes
-  addLeaves(root, res);
-
-  addRightBoundary(root, res);
-  return res;
-}
-
-/*
-
- -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
-
-1 2 4 7 8 9 10 11 12 3
-
-1 2 4 8 9 10 11 12 7 3
-
-
-1 2 4 7 10 11 12 3
-1 2 4 10 11 12 7 3
-*/
